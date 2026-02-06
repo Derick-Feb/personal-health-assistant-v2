@@ -37,3 +37,7 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# env secrets
+src/main/resources/config.properties
+!src/main/resources/config.properties.example
