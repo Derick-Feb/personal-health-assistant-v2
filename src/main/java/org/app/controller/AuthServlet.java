@@ -7,12 +7,12 @@ import org.app.dao.UserDAO;
 import org.app.model.User;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 @WebServlet("/auth")
 public class AuthServlet extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
     {
@@ -30,7 +30,7 @@ public class AuthServlet extends HttpServlet {
                 boolean success = false;
                 try {
                     success = userDAO.register(newUser);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     throw new ServletException(e);
                 }
 
@@ -44,7 +44,7 @@ public class AuthServlet extends HttpServlet {
                 User authenticatedUser = null;
                 try {
                     authenticatedUser = userDAO.validateUser(userParam, passParam);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     throw new ServletException(e);
                 }
 

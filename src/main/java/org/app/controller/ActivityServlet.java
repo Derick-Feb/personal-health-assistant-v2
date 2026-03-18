@@ -12,6 +12,7 @@ import java.sql.SQLException;
 public class ActivityServlet extends HttpServlet {
     private final ActivityDAO activityDAO = new ActivityDAO();
 
+    @Override
     protected void doPost (HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException
     {
@@ -39,6 +40,7 @@ public class ActivityServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
@@ -60,7 +62,7 @@ public class ActivityServlet extends HttpServlet {
             request.setAttribute("activities", list);
 
             request.getRequestDispatcher("dashboard.jsp").forward(request, response);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new ServletException(e);
         }
     }

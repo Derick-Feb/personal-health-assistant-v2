@@ -1,47 +1,46 @@
 package org.app.dao;
 
 import org.app.model.User;
-import org.app.util.DBUtil;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import org.app.util.HibernateUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserDAO {
-    public boolean register(User user) throws SQLException {
-        String query = "INSERT INTO users(username, password) VALUES (?, ?)";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement st = conn.prepareStatement(query);
-        ) {
-            st.setString(1, user.getUsername());
-            st.setString(2, user.getPassword());
-            st.execute();
+    public boolean register(User user) {
+        Transaction tx = null;
 
-            int rows = st.executeUpdate();
-            return rows > 0;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+
+            String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+            user.setPassword(hashedPassword);
+
+            session.persist(user);
+
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            return false;
         }
     }
 
-    public User validateUser(String username, String password) throws SQLException {
-        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+    public User validateUser(String username, String password) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try (Connection conn = DBUtil.getConnection();
-            PreparedStatement st = conn.prepareStatement(query);
-        ) {
-            st.setString(1, username);
-            st.setString(2, password);
+            String hql = "FROM User WHERE username = :u AND password = :p";
 
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setUsername(rs.getString("username"));
+            User user = session.createQuery(hql, User.class)
+                    .setParameter("u", username)
+                    .uniqueResult();
+
+            if(user != null && BCrypt.checkpw(password, user.getPassword())) {
                 return user;
             }
-        }
 
-        return null;
+            return null;
+        }
     }
 }
